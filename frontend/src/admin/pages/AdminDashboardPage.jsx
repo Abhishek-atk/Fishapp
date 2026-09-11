@@ -1,6 +1,6 @@
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
-const HomePage = () => {
+const AdminDashboardPage = () => {
   const { user, logout } = useAuth();
 
   return (
@@ -8,13 +8,13 @@ const HomePage = () => {
       <div className="home-card page-enter">
         <div className="home-logo">F</div>
 
-        <h1>Welcome</h1>
+        <h1>Admin Dashboard</h1>
 
-        <p className="home-subtitle">You are successfully logged in.</p>
+        <p className="home-subtitle">Welcome, {user?.phone}</p>
 
         <div className="user-info">
           <div>
-            <span>Phone</span>
+            <span>Account</span>
 
             <strong>{user?.phone}</strong>
           </div>
@@ -34,4 +34,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default AdminDashboardPage;

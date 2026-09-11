@@ -7,6 +7,9 @@ import HomePage from "./pages/HomePage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
+import AdminRoute from "./admin/routes/AdminRoute";
+import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
+
 import "./App.css";
 
 const App = () => {
@@ -17,13 +20,21 @@ const App = () => {
           {/* Login */}
           <Route path="/login" element={<AuthPage />} />
 
-          {/* Protected home */}
           <Route
             path="/"
             element={
               <ProtectedRoute>
                 <HomePage />
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboardPage />
+              </AdminRoute>
             }
           />
 

@@ -176,9 +176,15 @@ const OtpForm = ({
       // Firebase authentication is now complete.
       // AuthContext will detect the Firebase user.
       // Redirect to home.
-      navigate("/", {
-        replace: true,
-      });
+if (response.user.role === "admin") {
+  navigate("/dashboard", {
+    replace: true,
+  });
+} else {
+  navigate("/", {
+    replace: true,
+  });
+}
 
     } catch (error) {
       console.error(
