@@ -1,56 +1,78 @@
 import { useState } from "react";
+
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 import { auth } from "../../config/firebase";
 
-function PhoneForm({ onOtpSent }) {
+const PhoneForm = ({ onOtpSent }) => {
   const [phone, setPhone] = useState("");
+
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
+
+  const setupRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      return;
+    }
+
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+
+        callback: () => {
+          console.log("reCAPTCHA verified");
+        },
+
+        "expired-callback": () => {
+          console.log("reCAPTCHA expired");
+        },
+      },
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
 
-    if (phone.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+    const cleanPhone = phone.replace(/\D/g, "");
+
+    if (cleanPhone.length !== 10) {
+      setError("Please enter a valid 10-digit phone number.");
+
       return;
     }
 
-    setLoading(true);
-
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(
-          auth,
-          "recaptcha-container",
-          {
-            size: "invisible",
-            callback: () => {},
-          },
-        );
-      }
+      setLoading(true);
 
-      const appVerifier = window.recaptchaVerifier;
+      setupRecaptcha();
+
+      const formattedPhone = `+91${cleanPhone}`;
 
       const confirmationResult = await signInWithPhoneNumber(
         auth,
-        `+91${phone}`,
-        appVerifier,
+        formattedPhone,
+        window.recaptchaVerifier,
       );
 
+      console.log("OTP sent successfully");
+
       onOtpSent({
-        phone,
+        phone: cleanPhone,
         confirmationResult,
       });
     } catch (error) {
-      console.error(error);
+      console.error("OTP sending failed:", error);
 
       setError(error.message || "Unable to send OTP. Please try again.");
 
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
+
         window.recaptchaVerifier = null;
       }
     } finally {
@@ -60,12 +82,13 @@ function PhoneForm({ onOtpSent }) {
 
   return (
     <div className="auth-content page-enter">
-      <div className="icon-circle">
-        <span>+91</span>
+      <div className="icon-circle phone-icon">
+        <span>☎</span>
       </div>
 
       <div className="heading">
-        <h1>Welcome back</h1>
+        <h1>Welcome</h1>
+
         <p>Enter your mobile number to continue</p>
       </div>
 
@@ -73,17 +96,25 @@ function PhoneForm({ onOtpSent }) {
         <label htmlFor="phone">Mobile number</label>
 
         <div className="phone-input">
-          <div className="country-code">+91</div>
+          <div className="country-code">
+            <span>+91</span>
+          </div>
 
           <input
             id="phone"
             type="tel"
             inputMode="numeric"
-            maxLength="10"
-            placeholder="98765 43210"
+            autoComplete="tel"
+            placeholder="Enter mobile number"
             value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-            autoFocus
+            maxLength={10}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+
+              setPhone(value);
+
+              setError("");
+            }}
           />
         </div>
 
@@ -101,14 +132,15 @@ function PhoneForm({ onOtpSent }) {
         </button>
       </form>
 
-      <p className="terms">
-        By continuing, you agree to our <span>Terms</span> and{" "}
-        <span>Privacy Policy</span>.
-      </p>
+      <div className="terms">
+        By continuing, you agree to our
+        <br />
+        Terms of Service and Privacy Policy.
+      </div>
 
       <div id="recaptcha-container"></div>
     </div>
   );
-}
+};
 
 export default PhoneForm;

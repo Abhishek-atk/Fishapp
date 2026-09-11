@@ -1,13 +1,33 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { loginWithFirebase } from "../../api/authApi";
 
-function OtpForm({ phone, confirmationResult, onBack, onLoginSuccess }) {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+const OtpForm = ({
+  phone,
+  confirmationResult,
+  onBack,
+}) => {
+  const navigate = useNavigate();
+
+  const [otp, setOtp] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
-  const handleOtpChange = (value, index) => {
+  const handleOtpChange = (
+    value,
+    index
+  ) => {
     if (!/^\d*$/.test(value)) {
       return;
     }
@@ -18,15 +38,80 @@ function OtpForm({ phone, confirmationResult, onBack, onLoginSuccess }) {
 
     setOtp(newOtp);
 
-    if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`)?.focus();
+    setError("");
+
+    if (
+      value &&
+      index < 5
+    ) {
+      document
+        .getElementById(
+          `otp-${index + 1}`
+        )
+        ?.focus();
     }
   };
 
-  const handleKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus();
+  const handleKeyDown = (
+    e,
+    index
+  ) => {
+    if (
+      e.key === "Backspace" &&
+      !otp[index] &&
+      index > 0
+    ) {
+      document
+        .getElementById(
+          `otp-${index - 1}`
+        )
+        ?.focus();
     }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+
+    const pasted =
+      e.clipboardData
+        .getData("text")
+        .replace(/\D/g, "")
+        .slice(0, 6);
+
+    if (!pasted) {
+      return;
+    }
+
+    const newOtp = [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+    ];
+
+    pasted
+      .split("")
+      .forEach(
+        (digit, index) => {
+          newOtp[index] = digit;
+        }
+      );
+
+    setOtp(newOtp);
+
+    const focusIndex =
+      Math.min(
+        pasted.length,
+        5
+      );
+
+    document
+      .getElementById(
+        `otp-${focusIndex}`
+      )
+      ?.focus();
   };
 
   const handleVerify = async (e) => {
@@ -34,36 +119,93 @@ function OtpForm({ phone, confirmationResult, onBack, onLoginSuccess }) {
 
     setError("");
 
-    const enteredOtp = otp.join("");
+    const enteredOtp =
+      otp.join("");
 
     if (enteredOtp.length !== 6) {
-      setError("Please enter the 6-digit OTP.");
+      setError(
+        "Please enter the 6-digit OTP."
+      );
+
       return;
     }
 
-    setLoading(true);
-
     try {
-      // Verify OTP with Firebase
-      const result = await confirmationResult.confirm(enteredOtp);
+      setLoading(true);
 
-      // Firebase authenticated user
-      const firebaseUser = result.user;
+      console.log(
+        "Verifying OTP..."
+      );
 
-      // Get Firebase ID token
-      const idToken = await firebaseUser.getIdToken();
+      // 1. Verify OTP with Firebase
+      const result =
+        await confirmationResult.confirm(
+          enteredOtp
+        );
 
-      // Send Firebase token to our backend
-      const response = await loginWithFirebase(idToken);
+      const firebaseUser =
+        result.user;
 
-      console.log("Backend login:", response);
+      console.log(
+        "Firebase login successful:",
+        firebaseUser.uid
+      );
 
-      // Tell parent authentication is complete
-      onLoginSuccess(response.user);
+      // 2. Get Firebase token
+      const idToken =
+        await firebaseUser.getIdToken(
+          true
+        );
+
+      console.log(
+        "Firebase token received"
+      );
+
+      // 3. Login to our backend
+      const response =
+        await loginWithFirebase(
+          idToken
+        );
+
+      console.log(
+        "Backend login successful:",
+        response
+      );
+
+      // 4. IMPORTANT
+      // Firebase authentication is now complete.
+      // AuthContext will detect the Firebase user.
+      // Redirect to home.
+      navigate("/", {
+        replace: true,
+      });
+
     } catch (error) {
-      console.error(error);
+      console.error(
+        "OTP verification failed:",
+        error
+      );
 
-      setError(error.message || "Invalid OTP. Please try again.");
+      if (
+        error.code ===
+        "auth/invalid-verification-code"
+      ) {
+        setError(
+          "Incorrect OTP. Please check the code and try again."
+        );
+      } else if (
+        error.code ===
+        "auth/code-expired"
+      ) {
+        setError(
+          "This OTP has expired. Please request a new one."
+        );
+      } else {
+        setError(
+          error.message ||
+            "Unable to verify OTP."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -71,40 +213,81 @@ function OtpForm({ phone, confirmationResult, onBack, onLoginSuccess }) {
 
   return (
     <div className="auth-content page-enter">
+
       <div className="icon-circle otp-icon">
         <span>✦</span>
       </div>
 
       <div className="heading">
-        <h1>Verify your number</h1>
+        <h1>
+          Verify your number
+        </h1>
 
-        <p>We sent a 6-digit code to</p>
+        <p>
+          We sent a 6-digit code to
+        </p>
 
-        <strong>+91 {phone}</strong>
+        <strong>
+          +91 {phone}
+        </strong>
       </div>
 
-      <form onSubmit={handleVerify}>
-        <label>Enter OTP</label>
+      <form
+        onSubmit={handleVerify}
+      >
+        <label>
+          Enter OTP
+        </label>
 
         <div className="otp-container">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              id={`otp-${index}`}
-              className={`otp-input ${digit ? "filled" : ""}`}
-              type="text"
-              inputMode="numeric"
-              maxLength="1"
-              value={digit}
-              onChange={(e) => handleOtpChange(e.target.value, index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-            />
-          ))}
+          {otp.map(
+            (digit, index) => (
+              <input
+                key={index}
+                id={`otp-${index}`}
+                className={`otp-input ${
+                  digit
+                    ? "filled"
+                    : ""
+                }`}
+                type="text"
+                inputMode="numeric"
+                autoComplete={
+                  index === 0
+                    ? "one-time-code"
+                    : "off"
+                }
+                maxLength={1}
+                value={digit}
+                onChange={(e) =>
+                  handleOtpChange(
+                    e.target.value,
+                    index
+                  )
+                }
+                onKeyDown={(e) =>
+                  handleKeyDown(
+                    e,
+                    index
+                  )
+                }
+                onPaste={handlePaste}
+              />
+            )
+          )}
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
 
-        <button className="primary-button" type="submit" disabled={loading}>
+        <button
+          className="primary-button"
+          type="submit"
+          disabled={loading}
+        >
           {loading ? (
             <span className="button-loader"></span>
           ) : (
@@ -117,17 +300,32 @@ function OtpForm({ phone, confirmationResult, onBack, onLoginSuccess }) {
       </form>
 
       <div className="otp-actions">
+
         <p>
           Didn't receive the code?
-          <button type="button">Resend OTP</button>
+
+          <button
+            type="button"
+            disabled={loading}
+          >
+            Resend OTP
+          </button>
         </p>
 
-        <button className="change-number" type="button" onClick={onBack}>
+        <button
+          className="change-number"
+          type="button"
+          disabled={loading}
+          onClick={onBack}
+        >
           ← Use a different number
         </button>
+
       </div>
+
     </div>
   );
-}
+};
 
 export default OtpForm;
+

@@ -31,5 +31,10 @@ const loginUser = async (firebaseUser) => {
     return user;
 }
 
+const getUserByFirebaseUid = async (firebaseUid) => {
+  const user = await User.findOne({ firebaseUid });
+  return user;
+};
 
-export { loginUser };
+
+export { loginUser, getUserByFirebaseUid };
