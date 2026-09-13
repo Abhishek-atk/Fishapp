@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import {connectDB} from "./config/db.js";
 import authRoutes from "./modules/auth/routes.js";
 import adminRoutes from "./modules/admin/routes.js";
+import productRoutes from "./modules/products/routes.js";
 dotenv.config();
 
 const PORT = process.env.PORT
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/products", productRoutes);
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

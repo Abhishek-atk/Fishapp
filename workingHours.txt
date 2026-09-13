@@ -6,9 +6,16 @@ This files shows how many hours takes to complete this project, it includes codi
 - Project planing
 - Project Architecture
 
-10/09/2026 - Thrusday - 10 hr
+10/09/2026 - Thrusday - 10 hours
 
 - Project started
 - git inited
 - OTP research
 - Base Auth done; both frontend and backend
+
+11/09/2026 - Friday - 4 hours
+
+ - set /dashboard for admin 
+ - set / for user 
+ - redirect after login
+ 

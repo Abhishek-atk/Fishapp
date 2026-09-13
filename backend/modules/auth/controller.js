@@ -5,7 +5,6 @@ const login = async (req, res) => {
     const firebaseUser = req.user;
 
     const user = await loginUser(firebaseUser);
-    console.log("User logged in:", user);
     return res.status(200).json({
       success: true,
       message: "Login successful",
