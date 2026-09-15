@@ -23,15 +23,55 @@ const handleCreateProduct = async (productData) => {
 };
 
 const handleGetAllProducts = async () => {
-  const allProducts = await Products.find();
+  const allProducts = await Products.find({ isActive: true });
   return allProducts;
 }
 const getProductById = async (productId) => {
   if (!productId) {
     throw new Error("Product ID is required");
   }
-  const product = await Products.findById(productId);
+
+  const product = await Products.findOne({
+    _id: productId,
+    isActive: true,
+  });
+
   return product;
 };
+const handleDeleteProduct = async (productId) => {
+  if (!productId) {
+    throw new Error("Product ID is required");
+  }
 
-export { handleCreateProduct, handleGetAllProducts, getProductById };
+  const deletedProduct = await Products.findByIdAndUpdate(
+    productId,
+    { isActive: false },
+    { new: true },
+  );
+
+  if (!deletedProduct) {
+    throw new Error("Product not found");
+  }
+
+  return deletedProduct;
+};
+
+const handleEditProduct = async (productId, updatedData) => {
+  if (!productId) {
+    throw new Error("Product ID is required");
+  }
+
+  const updatedProduct = await Products.findByIdAndUpdate(
+    productId,
+    updatedData,
+    { new: true }
+  );
+
+  if (!updatedProduct) {
+    throw new Error("Product not found");
+  }
+
+  return updatedProduct;
+};
+
+export { handleCreateProduct, handleGetAllProducts, getProductById, handleDeleteProduct, handleEditProduct };

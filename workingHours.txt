@@ -18,4 +18,15 @@ This files shows how many hours takes to complete this project, it includes codi
  - set /dashboard for admin 
  - set / for user 
  - redirect after login
- 
+
+ 12/09/2026 - 3 hours
+
+  - add product module
+  - add product done
+  
+  13/09/2026 - 2 hours
+  
+  - get all product 
+  - get single product by id
+  - research about add-to-cart
+  - research about image cloud storage

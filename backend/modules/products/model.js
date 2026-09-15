@@ -27,6 +27,16 @@ const productsSchema = new mongoose.Schema(
       enum: ["available", "out_of_stock"],
       default: "available",
     },
+    image: {
+      url: {
+        type: String,
+        default: "",
+      },
+      publicId: {
+        type: String,
+        default: "",
+      },
+    },
     isActive: {
       type: Boolean,
       default: true,
