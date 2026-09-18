@@ -1,12 +1,16 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 
 import AuthPage from "./pages/AuthPage";
-import HomePage from "./pages/HomePage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
+// User
+import HomePage from "./user/pages/Home/Home";
+
+// Admin
 import AdminRoute from "./admin/routes/AdminRoute";
 import AdminLayout from "./admin/components/AdminLayout";
 
@@ -22,8 +26,22 @@ const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
+
         <Routes>
-          <Route path="/login" element={<AuthPage />} />
+
+          {/* =========================
+              AUTH
+          ========================= */}
+
+          <Route
+            path="/login"
+            element={<AuthPage />}
+          />
+
+
+          {/* =========================
+              USER
+          ========================= */}
 
           <Route
             path="/"
@@ -34,6 +52,11 @@ const App = () => {
             }
           />
 
+
+          {/* =========================
+              ADMIN
+          ========================= */}
+
           <Route
             path="/dashboard"
             element={
@@ -42,26 +65,56 @@ const App = () => {
               </AdminRoute>
             }
           >
-            <Route index element={<AdminDashboardPage />} />
 
-            <Route path="products" element={<ProductsPage />} />
-
-            <Route path="products/new" element={<CreateProductPage />} />
+            {/* /dashboard */}
             <Route
-              path="/dashboard/products/:id/edit"
+              index
+              element={<AdminDashboardPage />}
+            />
+
+            {/* /dashboard/products */}
+            <Route
+              path="products"
+              element={<ProductsPage />}
+            />
+
+            {/* /dashboard/products/new */}
+            <Route
+              path="products/new"
+              element={<CreateProductPage />}
+            />
+
+            {/* /dashboard/products/:id/edit */}
+            <Route
+              path="products/:id/edit"
               element={
-                <AdminRoute>
-                  <EditProductPage />
-                </AdminRoute>
+                <EditProductPage />
               }
             />
+
           </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+
+          {/* =========================
+              FALLBACK
+          ========================= */}
+
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/"
+                replace
+              />
+            }
+          />
+
         </Routes>
+
       </AuthProvider>
     </BrowserRouter>
   );
 };
 
 export default App;
+
